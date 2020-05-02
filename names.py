@@ -1,0 +1,9 @@
+morf = False
+poSost = False
+zvbuk = False
+fonet = False
+cacChast = False
+morfemn = False
+rasspisanie = False
+sessionStorage = {}
+rasbor = False
