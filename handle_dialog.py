@@ -1,4 +1,5 @@
 import names
+import rasbor
 
 
 def handle_dialog(req, res):
@@ -61,70 +62,76 @@ def handle_dialog(req, res):
         res['response']['text'] = "Всегда пожалуйста. Ещё что то?"
         return
 
-    if names.morf:
+    if names.morf or names.cacChast:
         names.morf = False
-        res['response']['text'] = "Вот разбор"
-        return
-    if names.zvbuk:
-        names.zvbuk = False
-        res['response']['text'] = "Вот разбор"
-        return
-    if names.fonet:
-        names.fonet = False
-        res['response']['text'] = "Вот разбор"
-        return
-    if names.poSost:
-        names.poSost = False
-        res['response']['text'] = "Вот разбор"
-        return
-    if names.morfemn:
-        names.morfemn = False
-        res['response']['text'] = "Вот разбор"
-        return
-    if names.cacChast:
         names.cacChast = False
-        res['response']['text'] = "Вот разбор"
+        res['response']['text'] = rasbor.morfolog(req['request']['original_utterance'].
+                                                  lower().replace("слова", "").split()[0])
+        return
+    if names.zvbuk or names.fonet:
+        names.zvbuk = False
+        names.fonet = False
+        res['response']['text'] = rasbor.fonet(req['request']['original_utterance'].
+                                               lower().replace("слова", "").split()[0])
+        return
+    if names.poSost or names.morfemn:
+        names.poSost = False
+        names.morfemn = False
+        res['response']['text'] = rasbor.morfemn(req['request']['original_utterance'].
+                                                 lower().replace("слова", "").split()[0])
         return
 
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'морфологический' in req['request']['original_utterance'].lower() \
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.morfolog(req['request']['original_utterance'].
+                                                  lower().replace("слова", "").replace("разбор", "").
+                                                  replace("морфологический", "").split()[0])
         names.morf = False
         names.rasbor = False
         return
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'как части речи' in req['request']['original_utterance'].lower()\
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.morfolog(req['request']['original_utterance'].
+                                                  lower().replace("слова", "").replace("разбор", "").
+                                                  replace("как части речи", "").split()[0])
         names.cacChast = False
         names.rasbor = False
         return
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'морфемный' in req['request']['original_utterance'].lower()\
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.morfemn(req['request']['original_utterance'].
+                                                 lower().replace("слова", "").replace("разбор", "").
+                                                 replace("морфемный", "").split()[0])
         names.morfemn = False
         names.rasbor = False
         return
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'по составу' in req['request']['original_utterance'].lower()\
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.morfemn(req['request']['original_utterance'].
+                                                 lower().replace("слова", "").replace("разбор", "").
+                                                 replace("по составу", "").split()[0])
         names.poSost = False
         names.rasbor = False
         return
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'фонетический' in req['request']['original_utterance'].lower()\
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.fonet(req['request']['original_utterance']
+                                               .lower().replace("слова", "").
+                                               replace("разбор", "").replace("фонетический", "").split()[0])
         names.fonet = False
         names.rasbor = False
         return
     if 'разбор' in req['request']['original_utterance'].lower() \
             and 'звуко-буквенный' in req['request']['original_utterance'].lower()\
-            and len(req['request']['original_utterance'].lower().split()) >= 3:
-        res['response']['text'] = "Вот разбор"
+            and len(req['request']['original_utterance'].lower().split()) >= 4:
+        res['response']['text'] = rasbor.fonet(req['request']['original_utterance']
+                                               .lower().replace("слова", "").
+                                               replace("разбор", "").replace("звуко-буквенный", "").split()[0])
         names.zvbuk = False
         names.rasbor = False
         return
