@@ -8,26 +8,52 @@ def handle_dialog(req, res):
         names.sessionStorage[user_id] = {
             'suggests': [
                 "Разбор",
-                "Рассписание",
+                "Расписание",
                 "Отстань!",
             ]
         }
-        res['response']['text'] = 'Привет! Я помогу тебе с учёбой! Что ты хочешь? Узнать рассписание или разбор'
+        res['response']['text'] = 'Привет! Я помогу тебе с учёбой.'
         res['response']['buttons'] = get_suggests(user_id)
         return
-    if 'рассписание' in req['request']['original_utterance'].lower() \
+    if prov_g(req) and 'расписание' in req['request']['original_utterance'].lower() \
             and ('школ' in req['request']['original_utterance'].lower() or
                  'гимнази' in req['request']['original_utterance'].lower() or
                  'лице' in req['request']['original_utterance'].lower()):
-        res['response']['text'] = 'Вот рассписание'
+        res['response']['text'] = 'Какого класса?!'
+        names.rasspisanie = False
+        names.raspisanie2 = True
         return
-    elif'рассписание' in req['request']['original_utterance'].lower():
+    elif 'расписание' in req['request']['original_utterance'].lower():
+        res['response']['text'] = 'Какой города?'
+        names.city = True
+        return
+    elif names.city:
         res['response']['text'] = 'Какой именно школы?'
+        names.city = False
         names.rasspisanie = True
         return
     elif names.rasspisanie:
-        res['response']['text'] = 'Вот рассписание'
+        res['response']['text'] = 'Какого класса?!'
         names.rasspisanie = False
+        names.raspisanie2 = True
+        return
+    elif names.raspisanie2:
+        res['response']['text'] = "На какой день?!"
+        names.raspisanie2 = False
+        names.rasspisanie3 = True
+        return
+    elif names.rasspisanie3:
+        res['response']['text'] = "Вот расписание"
+        names.rasspisanie3 = False
+        return
+    elif prov_r_s_c(req) and prov_g(req):
+        res['response']['text'] = "На какой день?!"
+        names.raspisanie2 = False
+        names.rasspisanie3 = True
+        return
+    elif prov_r_s_c_d(req) and prov_g(req):
+        res['response']['text'] = "Вот расписание"
+        names.rasspisanie3 = False
         return
 
     if 'cпасибо' in req['request']['original_utterance'].lower() \
@@ -200,3 +226,36 @@ def get_suggests(user_id):
         })
 
     return suggests
+
+
+def prov_r_s_c(req):
+    if 'расписание' in req['request']['original_utterance'].lower() \
+            and ('школ' in req['request']['original_utterance'].lower() or
+                 'гимнази' in req['request']['original_utterance'].lower() or
+                 'лице' in req['request']['original_utterance'].lower()):
+        if 'класс' in req['request']['original_utterance'].lower():
+            return True
+    return False
+
+
+def prov_r_s_c_d(req):
+    if 'расписание' in req['request']['original_utterance'].lower() \
+            and ('школ' in req['request']['original_utterance'].lower() or
+                 'гимнази' in req['request']['original_utterance'].lower() or
+                 'лице' in req['request']['original_utterance'].lower()):
+        if 'класс' in req['request']['original_utterance'].lower():
+            if 'понедельник' in req['request']['original_utterance'].lower() \
+                    or 'вторник' in req['request']['original_utterance'].lower()\
+                    or 'среда' in req['request']['original_utterance'].lower() \
+                    or 'четверг' in req['request']['original_utterance'].lower() \
+                    or 'пятница' in req['request']['original_utterance'].lower() \
+                    or 'суббота' in req['request']['original_utterance'].lower():
+                return True
+    return False
+
+
+def prov_g(req):
+    #тут должна быть проверка города
+    if True:
+                return True
+    return False
