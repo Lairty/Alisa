@@ -1,5 +1,9 @@
 import names
 import rasbor
+from MethodsOfDb import table, id_of_class, id_of_school
+
+
+sessionStorage = {}
 import pravila
 
 
@@ -18,45 +22,50 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Привет! Я помогу тебе с учёбой.'
         res['response']['buttons'] = get_suggests(user_id)
         return
-    if prov_g(req) and 'расписание' in req['request']['original_utterance'].lower() \
-            and ('школ' in req['request']['original_utterance'].lower() or
-                 'гимнази' in req['request']['original_utterance'].lower() or
-                 'лице' in req['request']['original_utterance'].lower()):
-        res['response']['text'] = 'Какого класса?!'
-        names.rasspisanie = False
-        names.raspisanie2 = True
-        return
-    elif 'расписание' in req['request']['original_utterance'].lower():
-        res['response']['text'] = 'Какой города?'
-        names.city = True
-        return
-    elif names.city:
-        res['response']['text'] = 'Какой именно школы?'
-        names.city = False
+    if 'расписание' in req['request']['original_utterance'].lower() and names.rasspisanie is False:
         names.rasspisanie = True
+        res['response']['text'] = 'Какой город?'
+        sessionStorage[user_id]['city'] = {
+            'city': None
+        }
         return
-    elif names.rasspisanie:
-        res['response']['text'] = 'Какого класса?!'
-        names.rasspisanie = False
+    if names.rasspisanie is True and sessionStorage[user_id]['city']['city'] is not None\
+            and not names.raspisanie2 and not names.rasspisanie3:
         names.raspisanie2 = True
+        res['response']['text'] = 'Какая школа?'
+        sessionStorage[user_id]['school'] = {
+            'school': None
+        }
         return
-    elif names.raspisanie2:
-        res['response']['text'] = "На какой день?!"
-        names.raspisanie2 = False
+    if names.raspisanie2 is True and sessionStorage[user_id]['school']['school'] is not None and not names.rasspisanie3:
         names.rasspisanie3 = True
+        res['response']['text'] = 'Какой класс?'
+        sessionStorage[user_id]['class'] = {
+            'class': None
+        }
         return
-    elif names.rasspisanie3:
-        res['response']['text'] = "Вот расписание"
-        names.rasspisanie3 = False
+    if names.rasspisanie is True and sessionStorage[user_id]['city']['city'] is None\
+            and not names.raspisanie2 and not names.rasspisanie3:
+        city = get_city(req)
+        if city is None:
+            return 'Первый раз слышу об этом городе. Попробуй еще разок!'
+        sessionStorage[user_id]['city']['city'] = city
         return
-    elif prov_r_s_c(req) and prov_g(req):
-        res['response']['text'] = "На какой день?!"
+    if names.raspisanie2 and sessionStorage[user_id]['school']['school'] is None and not names.rasspisanie3:
+        sessionStorage[user_id]['school']['school'] = req['request']['original_utterance']
+        return
+    if names.rasspisanie3 is True and sessionStorage[user_id]['class']['class'] is None:
+        sessionStorage[user_id]['class']['class'] = req['request']['original_utterance']
+        city = sessionStorage[user_id]['city']['city']
+        sch = sessionStorage[user_id]['school']['school']
+        clas = sessionStorage[user_id]['class']['class']
+        res['response']['text'] = table(id_of_class(id_of_school(city, sch), clas))
+        names.rasspisanie = False
         names.raspisanie2 = False
-        names.rasspisanie3 = True
-        return
-    elif prov_r_s_c_d(req) and prov_g(req):
-        res['response']['text'] = "Вот расписание"
         names.rasspisanie3 = False
+        sessionStorage[user_id]['school']['school'] = None
+        sessionStorage[user_id]['class']['class'] = None
+        sessionStorage[user_id]['city']['city'] = None
         return
 
     if 'cпасибо' in req['request']['original_utterance'].lower() \
@@ -274,6 +283,29 @@ def prov_r_s_c_d(req):
                     or 'суббота' in req['request']['original_utterance'].lower():
                 return True
     return False
+
+
+def get_class(req):
+    # перебираем сущности
+    for entity in req['request']['nlu']['entities']:
+        # находим сущность с типом 'YANDEX.FIO'
+        if entity['type'] == 'YANDEX.FIO':
+            # Если есть сущность с ключом 'first_name',
+            # то возвращаем ее значение.
+            # Во всех остальных случаях возвращаем None.
+            return entity['value'].get('first_name', None)
+    return sessionStorage['nlu']['tokens']
+
+
+def get_city(req):
+    # перебираем именованные сущности
+    for entity in req['request']['nlu']['entities']:
+        # если тип YANDEX.GEO то пытаемся получить город(city),
+        # если нет, то возвращаем None
+        if entity['type'] == 'YANDEX.GEO':
+            # возвращаем None, если не нашли сущности с типом YANDEX.GEO
+            return entity['value'].get('city', None)
+
 
 
 def prov_g(req):
