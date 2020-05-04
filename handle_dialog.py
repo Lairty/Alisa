@@ -1,5 +1,6 @@
 import names
 import rasbor
+import pravila
 
 
 def handle_dialog(req, res):
@@ -10,6 +11,7 @@ def handle_dialog(req, res):
             'suggests': [
                 "Разбор",
                 "Расписание",
+                "Правило",
                 "Отстань!",
             ]
         }
@@ -206,7 +208,20 @@ def handle_dialog(req, res):
             return
     if 'разбор' in req['request']['original_utterance'].lower():
         res['response']['text'] = "Какой разбор?"
+        res['response']['buttons'] = {
+            'suggests': [
+                "Морфологический",
+                "Фонетический",
+                "Морфемный",
+            ]
+        }
         names.rasbor = True
+        return
+
+    if 'правил' in req['request']['original_utterance'].lower()\
+            and "русс" in req['request']['original_utterance'].lower() \
+            or "правописан" in req['request']['original_utterance'].lower():
+        res['response']['text'] = "Извините, но этот функционал пока не готов."
         return
 
     #res['response']['buttons'] = get_suggests(user_id)

@@ -7,7 +7,6 @@ logging.basicConfig(
 
 
 def add_to_log(level, text):
-    print(level, text)
     if level == "Debug":
         logging.debug(text)
     elif level == "Info":

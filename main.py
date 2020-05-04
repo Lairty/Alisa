@@ -22,4 +22,7 @@ def main():
 
 
 if __name__ == '__main__':
-    app.run()
+    try:
+        app.run()
+    except Exception as e:
+        add_to_log("Warning", e)
