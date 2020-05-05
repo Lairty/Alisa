@@ -1,6 +1,6 @@
 import names
 import rasbor
-from MethodsOfDb import table, id_of_class, id_of_school
+from MethodsOfDb import table, id_of_class, id_of_school, name_of_schools, classes, add_school, add_class
 
 
 sessionStorage = {}
@@ -14,62 +14,112 @@ def handle_dialog(req, res):
         names.sessionStorage[user_id] = {
             'suggests': [
                 "Разбор",
+                "Добавление школы",
+                "Добавление класса",
                 "Расписание",
                 "Правило",
                 "Отстань!",
             ]
         }
+
+        names.sessionStorage1[user_id] = {
+                'table': {
+                    'city': None,
+                    'school': None,
+                    'class': None
+                }
+        }
+
         res['response']['text'] = 'Привет! Я помогу тебе с учёбой.'
         res['response']['buttons'] = get_suggests(user_id)
         return
+    if 'добавление класса' in req['request']['original_utterance'].lower():
+        res['response']['text'] = 'Введите город, школу и класс, который хотите добавит через ";"'
+        names.addclass = True
+        return
+    if 'добавление школы' in req['request']['original_utterance'].lower():
+        res['response']['text'] = 'Введите город, адрес и название школы через ";"'
+        names.addschool = True
+        return
+    if names.addclass:
+        text = req['request']['original_utterance'].lower().split(';')
+        if len(text) == 3:
+            id = id_of_school(text[0], text[1])
+            print(text[0], text[1])
+            if id is None:
+                res['response']['text'] = 'Похоже, вы пытаетесь добавить класс к несуществующей школе или данные введены неверно'
+                return
+            add_class(id, text[2], 0)
+            res['response']['text'] = 'Класс добавлен, но до проверки на достоверность, отображаться он не будет'
+            names.addclass = False
+            return
+        res['response']['text'] = 'Данные введены некорректно'
+        return
+    if names.addschool:
+        text = req['request']['original_utterance'].lower().split(';')
+        if len(text) == 3:
+            add_school(text[2], text[1], text[0], 0)
+            res['response']['text'] = 'Школа добавлена, но до проверки на достоверность, отображаться она не будет'
+            names.addschool = False
+            return
+        res['response']['text'] = 'Данные введены некорректно'
+        return
+
     if 'расписание' in req['request']['original_utterance'].lower() and names.rasspisanie is False:
         names.rasspisanie = True
         res['response']['text'] = 'Какой город?'
-        sessionStorage[user_id]['city'] = {
-            'city': None
-        }
         return
-    if names.rasspisanie is True and sessionStorage[user_id]['city']['city'] is not None\
-            and not names.raspisanie2 and not names.rasspisanie3:
+    if names.rasspisanie is True and not names.raspisanie2 and not names.rasspisanie3\
+            and names.sessionStorage1[user_id]['table']['city'] is not None\
+            and req['request']['original_utterance'] not in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
+        res['response']['text'] = 'Какая-какая школа? Повтори ещё разок!'
+        return
+    if names.rasspisanie is True and not names.raspisanie2 and not names.rasspisanie3\
+            and names.sessionStorage1[user_id]['table']['city'] is not None\
+            and req['request']['original_utterance'] in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
         names.raspisanie2 = True
-        res['response']['text'] = 'Какая школа?'
-        sessionStorage[user_id]['school'] = {
-            'school': None
-        }
-        return
-    if names.raspisanie2 is True and sessionStorage[user_id]['school']['school'] is not None and not names.rasspisanie3:
-        names.rasspisanie3 = True
+        names.sessionStorage1[user_id]['table']['school'] = req['request']['original_utterance']
         res['response']['text'] = 'Какой класс?'
-        sessionStorage[user_id]['class'] = {
-            'class': None
-        }
         return
-    if names.rasspisanie is True and sessionStorage[user_id]['city']['city'] is None\
-            and not names.raspisanie2 and not names.rasspisanie3:
-        city = get_city(req)
-        if city is None:
-            return 'Первый раз слышу об этом городе. Попробуй еще разок!'
-        sessionStorage[user_id]['city']['city'] = city
+
+    if names.raspisanie2 is True and names.sessionStorage1[user_id]['table']['school'] is not None and not names.rasspisanie3\
+            and req['request']['original_utterance'] not in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
+        res['response']['text'] = 'Какой-какой класс? Повтори ещё разок!'
         return
-    if names.raspisanie2 and sessionStorage[user_id]['school']['school'] is None and not names.rasspisanie3:
-        sessionStorage[user_id]['school']['school'] = req['request']['original_utterance']
-        return
-    if names.rasspisanie3 is True and sessionStorage[user_id]['class']['class'] is None:
-        sessionStorage[user_id]['class']['class'] = req['request']['original_utterance']
-        city = sessionStorage[user_id]['city']['city']
-        sch = sessionStorage[user_id]['school']['school']
-        clas = sessionStorage[user_id]['class']['class']
-        res['response']['text'] = table(id_of_class(id_of_school(city, sch), clas))
+    if names.raspisanie2 is True and names.sessionStorage1[user_id]['table']['school'] is not None and not names.rasspisanie3\
+            and req['request']['original_utterance'] in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
+        names.rasspisanie3 = True
+
+        schools_id = id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0]
+        names.sessionStorage1[user_id]['table']['class'] = req['request']['original_utterance']
+        clas_id = id_of_class(schools_id, names.sessionStorage1[user_id]['table']['class'])[0]
+        res['response']['text'] = str(table(clas_id))
+        names.sessionStorage1[user_id]['table']['class'] = req['request']['original_utterance']
+        city = names.sessionStorage1[user_id]['table']['city']
+        sch = names.sessionStorage1[user_id]['table']['school']
+        clas = names.sessionStorage1[user_id]['table']['class']
         names.rasspisanie = False
         names.raspisanie2 = False
         names.rasspisanie3 = False
-        sessionStorage[user_id]['school']['school'] = None
-        sessionStorage[user_id]['class']['class'] = None
-        sessionStorage[user_id]['city']['city'] = None
+        names.sessionStorage1[user_id]['table']['school'] = None
+        names.sessionStorage1[user_id]['table']['class'] = None
+        names.sessionStorage1[user_id]['table']['city'] = None
+
+        return
+    if names.rasspisanie is True and names.sessionStorage1[user_id]['table']['city'] is None\
+            and not names.raspisanie2 and not names.rasspisanie3:
+        print(1)
+        city = get_city(req)
+        print(2)
+        if city is None:
+            res['response']['text'] = 'Первый раз слышу об этом городе. Попробуй еще разок!'
+            return
+        names.sessionStorage1[user_id]['table']['city'] = city
+        res['response']['text'] = 'Какая школа?'
         return
 
     if 'cпасибо' in req['request']['original_utterance'].lower() \
-            or "Благодар" in req['request']['original_utterance'].lower():
+            or "благодар" in req['request']['original_utterance'].lower():
         res['response']['text'] = "Всегда пожалуйста. Ещё что то?"
         return
 
