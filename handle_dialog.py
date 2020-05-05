@@ -74,7 +74,7 @@ def handle_dialog(req, res):
     if names.addschool:
         text = req['request']['original_utterance'].lower().split(';')
         if len(text) == 3:
-            add_school(text[2], text[1], text[0], 0)
+            add_school(text[2], text[0], text[1], 0)
             res['response']['text'] = 'Школа добавлена, но до проверки на достоверность, отображаться она не будет'
             names.addschool = False
             return
