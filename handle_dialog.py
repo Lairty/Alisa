@@ -267,13 +267,6 @@ def handle_dialog(req, res):
             return
     if 'разбор' in req['request']['original_utterance'].lower():
         res['response']['text'] = "Какой разбор?"
-        res['response']['buttons'] = {
-            'suggests': [
-                "Морфологический",
-                "Фонетический",
-                "Морфемный",
-            ]
-        }
         names.rasbor = True
         return
 
