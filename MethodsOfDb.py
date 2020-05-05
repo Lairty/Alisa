@@ -37,8 +37,6 @@ def id_of_school(city, name):  # ID школы, вводится город, н�
 def id_of_class(school_id, clas):  # ID класса, в school вводится ID школы, в clas - название класса
     con = sqlite3.connect('BaseOfSchools.db')
     cur = con.cursor()
-    print('SELECT id FROM classes WHERE school = {school} AND class = "{clas}" AND checked = 1'.format(
-        school=school_id, clas=clas))
     a = cur.execute('SELECT id FROM classes WHERE school = {school} AND class = "{clas}" AND checked = 1'.format(
         school=school_id, clas=clas)).fetchone()
     if a:
@@ -80,7 +78,6 @@ def table(clas_id, day=''):  # Расписание, в clas вводится id
 def classes(school_id):
     con = sqlite3.connect('BaseOfSchools.db')
     cur = con.cursor()
-    print('SELECT class FROM classes WHERE school = {id} and checked = 1'.format(id=school_id))
     a = cur.execute('SELECT class FROM classes WHERE school = {id} and checked = 1'.format(id=school_id)).fetchall()
     if a:
         return a

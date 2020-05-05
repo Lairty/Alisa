@@ -45,11 +45,10 @@ def handle_dialog(req, res):
         text = req['request']['original_utterance'].lower().split(';')
         if len(text) == 3:
             id = id_of_school(text[0], text[1])
-            print(text[0], text[1])
             if id is None:
                 res['response']['text'] = 'Похоже, вы пытаетесь добавить класс к несуществующей школе или данные введены неверно'
                 return
-            add_class(id, text[2], 0)
+            add_class(id[0], text[2], 0)
             res['response']['text'] = 'Класс добавлен, но до проверки на достоверность, отображаться он не будет'
             names.addclass = False
             return
@@ -58,7 +57,7 @@ def handle_dialog(req, res):
     if names.addschool:
         text = req['request']['original_utterance'].lower().split(';')
         if len(text) == 3:
-            add_school(text[2], text[1], text[0], 0)
+            add_school(text[2], text[0], text[1], 0)
             res['response']['text'] = 'Школа добавлена, но до проверки на достоверность, отображаться она не будет'
             names.addschool = False
             return
@@ -71,29 +70,29 @@ def handle_dialog(req, res):
         return
     if names.rasspisanie is True and not names.raspisanie2 and not names.rasspisanie3\
             and names.sessionStorage1[user_id]['table']['city'] is not None\
-            and req['request']['original_utterance'] not in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
+            and req['request']['original_utterance'].lower() not in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
         res['response']['text'] = 'Какая-какая школа? Повтори ещё разок!'
         return
     if names.rasspisanie is True and not names.raspisanie2 and not names.rasspisanie3\
             and names.sessionStorage1[user_id]['table']['city'] is not None\
-            and req['request']['original_utterance'] in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
+            and req['request']['original_utterance'].lower() in [i[0] for i in name_of_schools(names.sessionStorage1[user_id]['table']['city'])]:
         names.raspisanie2 = True
-        names.sessionStorage1[user_id]['table']['school'] = req['request']['original_utterance']
+        names.sessionStorage1[user_id]['table']['school'] = req['request']['original_utterance'].lower()
         res['response']['text'] = 'Какой класс?'
         return
 
     if names.raspisanie2 is True and names.sessionStorage1[user_id]['table']['school'] is not None and not names.rasspisanie3\
-            and req['request']['original_utterance'] not in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
+            and req['request']['original_utterance'].lower() not in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
         res['response']['text'] = 'Какой-какой класс? Повтори ещё разок!'
         return
     if names.raspisanie2 is True and names.sessionStorage1[user_id]['table']['school'] is not None and not names.rasspisanie3\
-            and req['request']['original_utterance'] in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
+            and req['request']['original_utterance'].lower() in [i[0] for i in classes(id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0])]:
         names.rasspisanie3 = True
 
         schools_id = id_of_school(names.sessionStorage1[user_id]['table']['city'], names.sessionStorage1[user_id]['table']['school'])[0]
-        names.sessionStorage1[user_id]['table']['class'] = req['request']['original_utterance']
+        names.sessionStorage1[user_id]['table']['class'] = req['request']['original_utterance'].lower()
         clas_id = id_of_class(schools_id, names.sessionStorage1[user_id]['table']['class'])[0]
-        res['response']['text'] = str(table(clas_id))
+        res['response']['text'] = '\n'.join(str('\n'.join([i for i in table(clas_id)])).split(';'))
         names.sessionStorage1[user_id]['table']['class'] = req['request']['original_utterance']
         city = names.sessionStorage1[user_id]['table']['city']
         sch = names.sessionStorage1[user_id]['table']['school']
@@ -108,9 +107,7 @@ def handle_dialog(req, res):
         return
     if names.rasspisanie is True and names.sessionStorage1[user_id]['table']['city'] is None\
             and not names.raspisanie2 and not names.rasspisanie3:
-        print(1)
         city = get_city(req)
-        print(2)
         if city is None:
             res['response']['text'] = 'Первый раз слышу об этом городе. Попробуй еще разок!'
             return
