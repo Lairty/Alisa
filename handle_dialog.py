@@ -33,6 +33,22 @@ def handle_dialog(req, res):
         res['response']['text'] = 'Привет! Я помогу тебе с учёбой.'
         res['response']['buttons'] = get_suggests(user_id)
         return
+    if 'не стоит' in req['request']['original_utterance'].lower() or 'хватит' in req['request']['original_utterance'].lower():
+        res['response']['text'] = "Ну ладно. Может ещё чем нибудь помочь?"
+        names.city = False
+        names.rasbor = False
+        names.morf = False
+        names.poSost = False
+        names.zvbuk = False
+        names.fonet = False
+        names.cacChast = False
+        names.morfemn = False
+        names.rasspisanie = False
+        names.raspisanie2 = False
+        names.rasspisanie3 = False
+        names.addschool = False
+        names.addclass = False
+        return
     if 'добавление класса' in req['request']['original_utterance'].lower():
         res['response']['text'] = 'Введите город, школу и класс, который хотите добавит через ";"'
         names.addclass = True
@@ -276,7 +292,7 @@ def handle_dialog(req, res):
         res['response']['text'] = "Извините, но этот функционал пока не готов."
         return
 
-    #res['response']['buttons'] = get_suggests(user_id)
+    res['response']['buttons'] = get_suggests(user_id)
     res['response']['text'] = "Извините, но я не поняла."
     return
 
@@ -291,13 +307,6 @@ def get_suggests(user_id):
 
     session['suggests'] = session['suggests'][1:]
     names.sessionStorage[user_id] = session
-
-    if len(suggests) < 2:
-        suggests.append({
-            "title": "Ладно",
-            "url": "https://market.yandex.ru/search?text=слон",
-            "hide": True
-        })
 
     return suggests
 
